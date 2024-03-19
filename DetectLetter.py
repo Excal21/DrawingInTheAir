@@ -20,13 +20,13 @@ model = keras.models.load_model('best_model.h5')
 x_coords = []
 y_coords = []
 
-Orange_UB = np.array([40 , 255 , 255])
-Orange_LB = np.array([20 , 60 , 140])
+Orange_UB = np.array([179 , 255 , 255])
+Orange_LB = np.array([15 , 79 , 137])
 
 cap = cv.VideoCapture(url)
 
 for it in range(11):
-    sleep(0.1)
+    sleep(0.01)
     x_coords = []
     y_coords = []
 
@@ -58,8 +58,8 @@ for it in range(11):
 
         rows = mask.shape[0]
         circles = cv.HoughCircles(mask, cv.HOUGH_GRADIENT, 1, rows,
-                                    param1=100, param2=10,
-                                    minRadius=30, maxRadius=60)
+                                    param1=100, param2=15,
+                                    minRadius=25, maxRadius=60)
 
 
 
@@ -77,7 +77,7 @@ for it in range(11):
 
         
 
-        cv.flip(frame, 1)
+        frame = cv.flip(frame, 1)
         cv.imshow("Maszk", mask)
         cv.imshow("Android", frame)
         if cv.waitKey(1) & 0xFF == ord('q'): break
@@ -85,8 +85,8 @@ for it in range(11):
 
 
 
-    x_coords = x_coords[-70:]
-    y_coords = y_coords[-70:]
+    x_coords = x_coords[-150:]
+    y_coords = y_coords[-150:]
 
     # plt.plot(x_coords, y_coords, 'ro-')
     # plt.show()
@@ -111,6 +111,12 @@ for it in range(11):
     predicted_letter = chr(ord('A') + predicted_class)
   # Eredmény megjelenítése a képernyőn
     print("A rajzolt betű: ", predicted_letter)
+
+    probabilities = predictions[0]
+    print("Valószínűségek:")
+    for i, prob in enumerate(probabilities):
+        print(f"{chr(ord('A') + i)}: {prob}")
+
     plt.show()
 
 

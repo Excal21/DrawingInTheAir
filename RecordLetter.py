@@ -21,8 +21,8 @@ import numpy as np
 x_coords = []
 y_coords = []
 
-Orange_UB = np.array([40 , 255 , 255])
-Orange_LB = np.array([20 , 60 , 140])
+Orange_UB = np.array([32 , 220 , 255])
+Orange_LB = np.array([18 , 16 , 192])
 
 cap = cv.VideoCapture(url)
 
@@ -92,7 +92,7 @@ for it in range(11):
 
     plt.plot(x_coords, y_coords, linewidth=5)
     plt.axis('off')
-    plt.savefig('b_2{it}.png'.format(it=it), bbox_inches='tight')
+    plt.savefig('f_4{it}.png'.format(it=it), bbox_inches='tight')
     plt.show()
     x_coords = []
     y_coords = []
