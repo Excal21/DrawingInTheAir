@@ -21,8 +21,8 @@ model = keras.models.load_model('best_model.h5', compile=False)
 x_coords = []
 y_coords = []
 
-Orange_UB = np.array([179 , 255 , 255])
-Orange_LB = np.array([14 , 162 , 166])
+Orange_UB = np.array([95 , 255 , 255])
+Orange_LB = np.array([16 , 73 , 59])
 
 emptycnt = 0
 just_resetted = True

@@ -95,7 +95,7 @@ for it in range(40):
     plt.axis('off')
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
-    plt.savefig('j_{it}.png'.format(it=it), bbox_inches='tight')
+    plt.savefig('l_{it}.png'.format(it=it), bbox_inches='tight')
     plt.show()
     x_coords = []
     y_coords = []
