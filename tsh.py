@@ -29,12 +29,12 @@ cv2.setTrackbarPos('VMax', 'image', 255)
 hMin = sMin = vMin = hMax = sMax = vMax = 0
 phMin = psMin = pvMin = phMax = psMax = pvMax = 0
 
-ret, img = cap.read()
-output = img
 waitTime = 33
 
 while(1):
 
+    ret, img = cap.read()
+    output = img
     # get current positions of all trackbars
     hMin = cv2.getTrackbarPos('HMin','image')
     sMin = cv2.getTrackbarPos('SMin','image')
@@ -67,7 +67,7 @@ while(1):
     cv2.imshow('image',output)
 
     # Wait longer to prevent freeze for videos.
-    if cv2.waitKey(waitTime) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 cap.release()
 cv2.destroyAllWindows()

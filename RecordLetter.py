@@ -21,12 +21,12 @@ import numpy as np
 x_coords = []
 y_coords = []
 
-Orange_UB = np.array([32 , 220 , 255])
-Orange_LB = np.array([18 , 16 , 192])
+Orange_UB = np.array([152 , 255 , 255])
+Orange_LB = np.array([17 , 131 , 183])
 
 cap = cv.VideoCapture(url)
 
-for it in range(11):
+for it in range(40):
     sleep(0.1)
     while True:
         # img_resp = requests.get(url) 
@@ -73,7 +73,8 @@ for it in range(11):
                 y_coords.append(-center[1])
                 cv.circle(frame, center, radius, (255, 0, 255), 3)
 
-        
+        frame = cv.flip(frame, 1)
+        mask = cv.flip(mask, 1)
         cv.imshow("Maszk", mask)
         cv.imshow("Android", frame)
         if cv.waitKey(1) & 0xFF == ord('q'): break
@@ -92,7 +93,9 @@ for it in range(11):
 
     plt.plot(x_coords, y_coords, linewidth=5)
     plt.axis('off')
-    plt.savefig('f_4{it}.png'.format(it=it), bbox_inches='tight')
+    ax = plt.gca()
+    ax.set_aspect('equal', adjustable='box')
+    plt.savefig('j_{it}.png'.format(it=it), bbox_inches='tight')
     plt.show()
     x_coords = []
     y_coords = []

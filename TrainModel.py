@@ -18,7 +18,7 @@ model = keras.Sequential([
     keras.layers.Dense(64, activation='relu', kernel_regularizer=keras.regularizers.l2(0.09)),
     keras.layers.Dense(16, activation='relu'),
     keras.layers.Flatten(),
-    keras.layers.Dense(6, activation='softmax')
+    keras.layers.Dense(10, activation='softmax')
 ])
 
 
@@ -39,7 +39,7 @@ ds_train = keras.preprocessing.image_dataset_from_directory(
     'letters/',
     labels='inferred',
     label_mode='int',
-    class_names=['A', 'B', 'C', 'D', 'E', 'F'],
+    class_names=['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
     color_mode='grayscale',
     batch_size=batch_size,
     image_size=(img_height, img_width),
