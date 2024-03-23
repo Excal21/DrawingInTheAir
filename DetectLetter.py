@@ -6,6 +6,7 @@ from time import sleep
 import io
 from PIL import Image
 
+
 url = "http://192.168.1.12:8080/video"
 
 from tensorflow import keras
@@ -13,7 +14,7 @@ from PIL import Image
 import numpy as npqq
 
 # Betanított modell betöltése
-model = keras.models.load_model('best_model.h5', compile=False)
+model = keras.models.load_model('A-Z_97.h5', compile=False)
 
 
 
@@ -21,24 +22,23 @@ model = keras.models.load_model('best_model.h5', compile=False)
 x_coords = []
 y_coords = []
 
-Orange_UB = np.array([95 , 255 , 255])
-Orange_LB = np.array([16 , 73 , 59])
+with open('hsv.conf', 'r') as file:
+    values = [int(line.split('=')[1]) for line in file.readlines()]
+    Orange_LB = np.array([values[0] , values[1] , values[2]])
+    Orange_UB = np.array([values[3] , values[4] , values[5]])
 
 emptycnt = 0
 just_resetted = True
 
 cap = cv.VideoCapture(url)
 try:
-    for it in range(15):
+    for it in range(40):
         detectednum = 0
         sleep(0.01)
         x_coords = []
         y_coords = []
 
         while True:
-            # img_resp = requests.get(url) 
-            # img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8) 
-            # frame = cv.imdecode(img_arr, -1)
             ret, frame = cap.read() 
             frame = imutils.resize(frame, width=720, height=1280) 
             
@@ -46,20 +46,12 @@ try:
             gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
             gray = cv.GaussianBlur(gray, (17,17), 0)
 
-
-            #cv.imshow("Blurframe", gray)
-
-
             HSV_im_1 = cv.cvtColor(frame , cv.COLOR_BGR2HSV)
 
 
             mask = cv.inRange(HSV_im_1,Orange_LB,Orange_UB)
 
             mask = cv.medianBlur(mask, 9)
-
-            #circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1.2, 100, param1=100, param2=30, minRadius=170, maxRadius=300)
-
-
 
             rows = mask.shape[0]
             circles = cv.HoughCircles(mask, cv.HOUGH_GRADIENT, 1, rows,
@@ -107,17 +99,10 @@ try:
         x_coords = x_coords[-80:]
         y_coords = y_coords[-80:]
 
-        # plt.plot(x_coords, y_coords, 'ro-')
-        # plt.show()
-        #plt.xlabel('x')
-        #plt.ylabel('y')
-
-
         plt.plot(x_coords, y_coords, linewidth=5)
         ax = plt.gca()
         ax.set_aspect('equal', adjustable='box')
         plt.axis('off')
-        #plt.savefig('d_{it}.png'.format(it=it), bbox_inches='tight')
 
         plt.savefig('current_drawing.png', bbox_inches='tight')
 
@@ -129,7 +114,7 @@ try:
         img = img.resize((28, 28))  # Méret átalakítása a modell bemenetének megfelelően
         img_array = np.array(img) / 255.0  # Normalizálás
 
-        # Kép előrejelzése a betanított modelllel
+        #Betű megtippelése a betanított modelllel
         predictions = model.predict(np.expand_dims(img_array, axis=0))
         predicted_class = np.argmax(predictions[0])
         predicted_letter = chr(ord('A') + predicted_class)
@@ -139,16 +124,11 @@ try:
         print("A rajzolt betű: ", predicted_letter)
 
         probabilities = predictions[0]
-        print("Valószínűségek:")
-        for i, prob in enumerate(probabilities):
-            print(f"{chr(ord('A') + i)}: {prob}")
+        # print("Valószínűségek:")
+        # for i, prob in enumerate(probabilities):
+        #     print(f"{chr(ord('A') + i)}: {prob}")
 
         plt.show()
-
-
-
-
-
 
         cv.destroyAllWindows()
 except KeyboardInterrupt:

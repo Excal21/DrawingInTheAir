@@ -12,36 +12,27 @@ from tensorflow import keras
 from PIL import Image
 import numpy as np
 
-# Betanított modell betöltése
-#model = keras.models.load_model('model_checkpoint.h5')
-
-
-
 
 x_coords = []
 y_coords = []
 
-Orange_UB = np.array([152 , 255 , 255])
-Orange_LB = np.array([17 , 131 , 183])
+with open('hsv.conf', 'r') as file:
+    values = [int(line.split('=')[1]) for line in file.readlines()]
+    Orange_LB = np.array([values[0] , values[1] , values[2]])
+    Orange_UB = np.array([values[3] , values[4] , values[5]])
 
 cap = cv.VideoCapture(url)
 
 for it in range(40):
     sleep(0.1)
     while True:
-        # img_resp = requests.get(url) 
-        # img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8) 
-        # frame = cv.imdecode(img_arr, -1)
+
         ret, frame = cap.read() 
         frame = imutils.resize(frame, width=720, height=1280) 
         
         
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         gray = cv.GaussianBlur(gray, (17,17), 0)
-
-
-        #cv.imshow("Blurframe", gray)
-
 
         HSV_im_1 = cv.cvtColor(frame , cv.COLOR_BGR2HSV)
 
@@ -50,15 +41,10 @@ for it in range(40):
 
         mask = cv.medianBlur(mask, 9)
 
-        #circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1.2, 100, param1=100, param2=30, minRadius=170, maxRadius=300)
-
-
-
         rows = mask.shape[0]
         circles = cv.HoughCircles(mask, cv.HOUGH_GRADIENT, 1, rows,
                                     param1=100, param2=10,
                                     minRadius=30, maxRadius=60)
-
 
 
         if circles is not None:
@@ -79,14 +65,9 @@ for it in range(40):
         cv.imshow("Android", frame)
         if cv.waitKey(1) & 0xFF == ord('q'): break
 
-
-
-
     x_coords = x_coords[-70:]
     y_coords = y_coords[-70:]
 
-    # plt.plot(x_coords, y_coords, 'ro-')
-    # plt.show()
     plt.xlabel('x')
     plt.ylabel('y')
 
@@ -95,12 +76,10 @@ for it in range(40):
     plt.axis('off')
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
-    plt.savefig('l_{it}.png'.format(it=it), bbox_inches='tight')
+    plt.savefig('z_{it}.png'.format(it=it), bbox_inches='tight')
     plt.show()
     x_coords = []
     y_coords = []
-
-
 
 
     cv.destroyAllWindows()
