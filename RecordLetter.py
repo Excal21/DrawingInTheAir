@@ -18,10 +18,12 @@ y_coords = []
 
 with open('hsv.conf', 'r') as file:
     values = [int(line.split('=')[1]) for line in file.readlines()]
-    Orange_LB = np.array([values[0] , values[1] , values[2]])
-    Orange_UB = np.array([values[3] , values[4] , values[5]])
+    camera = int(values[1]) if values[1].isdecimal() else values[1]
+    Orange_LB = np.array([values[1] , values[2] , values[3]])
+    Orange_UB = np.array([values[4] , values[5] , values[6]])
 
-cap = cv.VideoCapture(url)
+
+cap = cv.VideoCapture(camera)
 
 for it in range(40):
     sleep(0.1)
@@ -76,7 +78,7 @@ for it in range(40):
     plt.axis('off')
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
-    plt.savefig('z_{it}.png'.format(it=it), bbox_inches='tight')
+    plt.savefig('g_{it}.png'.format(it=it), bbox_inches='tight')
     plt.show()
     x_coords = []
     y_coords = []

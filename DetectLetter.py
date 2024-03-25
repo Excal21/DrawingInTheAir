@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from time import sleep
 import io
 from PIL import Image
-
+from pynput.keyboard import Key, Controller
 
 url = "http://192.168.1.12:8080/video"
 
@@ -14,25 +14,26 @@ from PIL import Image
 import numpy as npqq
 
 # Betanított modell betöltése
-model = keras.models.load_model('A-Z_97.h5', compile=False)
+model = keras.models.load_model('A-Z98.h5', compile=False)
 
-
+keyboard = Controller()
 
 
 x_coords = []
 y_coords = []
 
 with open('hsv.conf', 'r') as file:
-    values = [int(line.split('=')[1]) for line in file.readlines()]
-    Orange_LB = np.array([values[0] , values[1] , values[2]])
-    Orange_UB = np.array([values[3] , values[4] , values[5]])
+    values = [line.split('=')[1].strip() for line in file.readlines()]
+    camera = int(values[0]) if values[0].isdecimal() else values[0]
+    Orange_LB = np.array([int(values[1]) , int(values[2]) , int(values[3])])
+    Orange_UB = np.array([int(values[4]) , int(values[5]) , int(values[6])])
 
 emptycnt = 0
 just_resetted = True
 
-cap = cv.VideoCapture(url)
+cap = cv.VideoCapture(camera)
 try:
-    for it in range(40):
+    for it in range(80):
         detectednum = 0
         sleep(0.01)
         x_coords = []
@@ -99,18 +100,26 @@ try:
         x_coords = x_coords[-80:]
         y_coords = y_coords[-80:]
 
+        # plt.plot(x_coords, y_coords, linewidth=5)
+        # ax = plt.gca()
+        # ax.set_aspect('equal', adjustable='box')
+        # plt.axis('off')
+        
+       
+
+        # # # Kép betöltése és átalakítása a modell bemenetére
+
+
+        # Plot létrehozása
         plt.plot(x_coords, y_coords, linewidth=5)
         ax = plt.gca()
         ax.set_aspect('equal', adjustable='box')
         plt.axis('off')
-
+        #plt.show()
         plt.savefig('current_drawing.png', bbox_inches='tight')
+        plt.clf()
 
-        # # Kép betöltése és átalakítása a modell bemenetére
         img = Image.open('current_drawing.png').convert('L')  # Szürkeárnyalatos konverzió
-
-
-
         img = img.resize((28, 28))  # Méret átalakítása a modell bemenetének megfelelően
         img_array = np.array(img) / 255.0  # Normalizálás
 
@@ -123,13 +132,16 @@ try:
         # Eredmény megjelenítése a képernyőn
         print("A rajzolt betű: ", predicted_letter)
 
+        keyboard.press(predicted_letter)
+
         probabilities = predictions[0]
         # print("Valószínűségek:")
         # for i, prob in enumerate(probabilities):
         #     print(f"{chr(ord('A') + i)}: {prob}")
 
-        plt.show()
+        #plt.show()
 
-        cv.destroyAllWindows()
+    cv.destroyAllWindows()
 except KeyboardInterrupt:
+    cv.destroyAllWindows()
     cap.release()

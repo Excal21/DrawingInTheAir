@@ -55,7 +55,7 @@ while not smart:
     #     keras.layers.Dense(32, activation='relu'),
     #     keras.layers.Dense(32),
     #     keras.layers.LeakyReLU(alpha=0.05),
-    #     #keras.layers.Dense(256, activation='relu'),
+    #     #keras.layers.Dense(64, activation='relu'),
     #     keras.layers.Dense(64, activation='relu', kernel_regularizer=keras.regularizers.l2(0.06)),
     #     keras.layers.Dense(18, activation='relu'),
     #     keras.layers.Flatten(),
@@ -110,7 +110,7 @@ while not smart:
 
 
 
-    model.fit(ds_train, epochs=10, verbose=2)
+    model.fit(ds_train, epochs=6, verbose=2)
     predicted_letters = []
     #Validáció
 
@@ -128,7 +128,7 @@ while not smart:
 
     similarity_percentage = (same_characters / total_characters) * 100
     print("Egyezés aránya: ", similarity_percentage)
-    if similarity_percentage >= 95: smart = True
+    if similarity_percentage >= 96: smart = True
 
 
 model.save('best_model.h5')

@@ -7,9 +7,12 @@ import pickle
 def nothing(x):
     pass
 
-url = "http://192.168.1.12:8080/video"
+with open('hsv.conf', 'r') as file:
+    values = file.readline().strip().split('=')
+    camera = int(values[1]) if values[1].isdecimal() else values[1]
 
-cap = cv2.VideoCapture(url)
+
+cap = cv2.VideoCapture(camera)
 
 # Create a window
 cv2.namedWindow('image')
@@ -71,6 +74,7 @@ while(1):
     # Wait longer to prevent freeze for videos.
     if cv2.waitKey(1) & 0xFF == ord('q'):
         with open('hsv.conf', 'w') as file:
+            file.write('Camera=' + str(camera) + '\n')
             file.write('Hue minimum=' + str(hMin) + '\n')
             file.write('Saturation minimum=' + str(sMin) + '\n')
             file.write('Value minimum=' + str(vMin) + '\n')
