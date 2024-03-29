@@ -40,27 +40,12 @@ while not smart:
         keras.layers.MaxPooling2D((2, 2)),
         #keras.layers.Dense(32, activation='relu'),
         keras.layers.Dense(128),
-        keras.layers.LeakyReLU(alpha = 0.4),
-        keras.layers.Dense(128, activation='relu', kernel_regularizer=keras.regularizers.l2(0.04)),
+        keras.layers.LeakyReLU(alpha = 0.65),
+        keras.layers.Dense(128, activation='relu', kernel_regularizer=keras.regularizers.l2(0.023)),
         keras.layers.Dense(26, activation='relu'),
         keras.layers.Flatten(),
         keras.layers.Dense(26, activation='softmax')
     ])
-
-
-
-    # model = keras.Sequential([
-    #     keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(28, 28, 1)),
-    #     keras.layers.MaxPooling2D((2, 2)),
-    #     keras.layers.Dense(32, activation='relu'),
-    #     keras.layers.Dense(32),
-    #     keras.layers.LeakyReLU(alpha=0.05),
-    #     #keras.layers.Dense(64, activation='relu'),
-    #     keras.layers.Dense(64, activation='relu', kernel_regularizer=keras.regularizers.l2(0.06)),
-    #     keras.layers.Dense(18, activation='relu'),
-    #     keras.layers.Flatten(),
-    #     keras.layers.Dense(18, activation='softmax')
-    # ])
 
 
     checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath='best_model.h5',
@@ -85,14 +70,10 @@ while not smart:
         batch_size=batch_size,
         image_size=(img_height, img_width),
         shuffle=True,
-        #validation_split=0.1,
-        #subset="training",
     )
 
     # Adathalmaz bővítése
     data_augmentation = keras.Sequential([
-        #keras.layers.experimental.preprocessing.RandomContrast(0.2),
-        #keras.layers.experimental.preprocessing.RandomRotation(0.01),
         keras.layers.experimental.preprocessing.RandomZoom(0.1)
     ])
 
@@ -103,12 +84,6 @@ while not smart:
 
 
     # Modell tanítása
-    #model.fit(ds_train, epochs=20, callbacks=[checkpoint_callback], verbose=2)
-    #model.fit(ds_train, epochs=20, verbose=2)
-
-    #model.save('best_model.h5')
-
-
 
     model.fit(ds_train, epochs=6, verbose=2)
     predicted_letters = []
@@ -128,7 +103,7 @@ while not smart:
 
     similarity_percentage = (same_characters / total_characters) * 100
     print("Egyezés aránya: ", similarity_percentage)
-    if similarity_percentage >= 96: smart = True
+    if similarity_percentage >= 98: smart = True
 
 
 model.save('best_model.h5')

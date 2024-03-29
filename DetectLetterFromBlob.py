@@ -7,16 +7,16 @@ import io
 from PIL import Image
 from pynput.keyboard import Key, Controller
 
-url = "http://192.168.1.12:8080/video"
 
 from tensorflow import keras
 from PIL import Image
 import numpy as npqq
 
 # Betanított modell betöltése
-model = keras.models.load_model('A-Z98.h5', compile=False)
+model = keras.models.load_model('model/A-Z99.h5', compile=False)
 
 keyboard = Controller()
+
 
 
 x_coords = []
@@ -31,11 +31,21 @@ with open('hsv.conf', 'r') as file:
 emptycnt = 0
 just_resetted = True
 
+
+def calculate_contour_center(cnt):
+    M = cv.moments(cnt)
+    if M["m00"] != 0:
+        center_x = int(M["m10"] / M["m00"])
+        center_y = int(M["m01"] / M["m00"])
+        return center_x, center_y
+    else:
+        return None, None
+
 cap = cv.VideoCapture(camera)
+
 try:
-    for it in range(80):
+    for it in range(40):
         detectednum = 0
-        sleep(0.01)
         x_coords = []
         y_coords = []
 
@@ -54,30 +64,27 @@ try:
 
             mask = cv.medianBlur(mask, 9)
 
-            rows = mask.shape[0]
-            circles = cv.HoughCircles(mask, cv.HOUGH_GRADIENT, 1, rows,
-                                        param1=100, param2=10,
-                                        minRadius=30, maxRadius=50)
+            cnts = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[-2]
 
-
-
-            if circles is not None:
-                circles = np.uint16(np.around(circles))
-                for i in circles[0, :]:
-                    center = (i[0], i[1])
+            if cnts != ():
+                maxcnt = list(filter(lambda A: cv.contourArea(A) == max([cv.contourArea(cnt) for cnt in cnts]), cnts))[0]
+                if 2500 < cv.contourArea(maxcnt):
+                    center = calculate_contour_center(maxcnt)
                     # circle center
                     cv.circle(frame, center, 1, (0, 100, 100), 3)
                     # circle outline
-                    radius = i[2]
-                    x_coords.append(-center[0])
-                    y_coords.append(-center[1])
-                    cv.circle(frame, center, radius, (255, 0, 255), 3)
-                
-                if detectednum > 30:
-                    emptycnt = 0
-                    just_resetted = False
+                    if center != (None, None):
+                        x_coords.append(-center[0])
+                        y_coords.append(-center[1])
+                        cv.circle(frame, center, 40, (255, 0, 255), 3)
+                    
+                    if detectednum > 30:
+                        emptycnt = 0
+                        just_resetted = False
+                    else:
+                        detectednum += 1
                 else:
-                    detectednum += 1
+                    emptycnt += 1
             else:
                 emptycnt += 1
 
@@ -85,7 +92,7 @@ try:
             mask = cv.flip(mask, 1)
             cv.imshow("Maszk", mask)
             cv.imshow("Android", frame)
-            if emptycnt > 25 and not just_resetted:
+            if emptycnt > 30 and not just_resetted:
                 emptycnt = 0
                 just_resetted = True
                 break
@@ -100,30 +107,22 @@ try:
         x_coords = x_coords[-80:]
         y_coords = y_coords[-80:]
 
-        # plt.plot(x_coords, y_coords, linewidth=5)
-        # ax = plt.gca()
-        # ax.set_aspect('equal', adjustable='box')
-        # plt.axis('off')
-        
-       
-
-        # # # Kép betöltése és átalakítása a modell bemenetére
-
-
-        # Plot létrehozása
         plt.plot(x_coords, y_coords, linewidth=5)
         ax = plt.gca()
         ax.set_aspect('equal', adjustable='box')
         plt.axis('off')
-        #plt.show()
+
         plt.savefig('current_drawing.png', bbox_inches='tight')
         plt.clf()
-
+        # # Kép betöltése és átalakítása a modell bemenetére
         img = Image.open('current_drawing.png').convert('L')  # Szürkeárnyalatos konverzió
+
+
+
         img = img.resize((28, 28))  # Méret átalakítása a modell bemenetének megfelelően
         img_array = np.array(img) / 255.0  # Normalizálás
 
-        #Betű megtippelése a betanított modelllel
+        # Kép előrejelzése a betanított modelllel
         predictions = model.predict(np.expand_dims(img_array, axis=0))
         predicted_class = np.argmax(predictions[0])
         predicted_letter = chr(ord('A') + predicted_class)
@@ -132,14 +131,12 @@ try:
         # Eredmény megjelenítése a képernyőn
         print("A rajzolt betű: ", predicted_letter)
 
-        keyboard.press(predicted_letter)
-
         probabilities = predictions[0]
-        # print("Valószínűségek:")
-        # for i, prob in enumerate(probabilities):
-        #     print(f"{chr(ord('A') + i)}: {prob}")
+        keyboard.press(predicted_letter)
+        print("Valószínűségek:")
+        for i, prob in enumerate(probabilities):
+            print(f"{chr(ord('A') + i)}: {prob}")
 
-        #plt.show()
 
     cv.destroyAllWindows()
 except KeyboardInterrupt:
