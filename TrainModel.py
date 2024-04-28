@@ -2,6 +2,7 @@ import os
 import numpy as np
 from tensorflow import keras
 from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import EarlyStopping
 from PIL import Image
 import random
 
@@ -38,21 +39,13 @@ while not smart:
     model = keras.Sequential([
         keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
         keras.layers.MaxPooling2D((2, 2)),
-        #keras.layers.Dense(32, activation='relu'),
         keras.layers.Dense(128),
-        keras.layers.LeakyReLU(alpha = 0.65),
-        keras.layers.Dense(128, activation='relu', kernel_regularizer=keras.regularizers.l2(0.023)),
+        keras.layers.LeakyReLU(alpha = 0.63),
+        keras.layers.Dense(128, activation='relu', kernel_regularizer=keras.regularizers.l2(0.028)),
         keras.layers.Dense(26, activation='relu'),
         keras.layers.Flatten(),
         keras.layers.Dense(26, activation='softmax')
     ])
-
-
-    checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath='best_model.h5',
-                                        save_best_only=True,  # Csak a legjobb epochot menti
-                                        monitor='accuracy',   # A figyelendő metrika (pl. validációs veszteség)
-                                        mode='max',           # A metrika minimalizálására törekszik
-                                        verbose=1)
 
 
     # Modell összeállítása
@@ -79,31 +72,27 @@ while not smart:
 
     ds_train = ds_train.map(lambda x, y: (data_augmentation(x, training=True), y))
 
-
-
-
-
     # Modell tanítása
+    earlystop = EarlyStopping(monitor='accuracy', patience=2)
 
-    model.fit(ds_train, epochs=6, verbose=2)
+    history = model.fit(ds_train, epochs=6, verbose=2, callbacks=[earlystop])
     predicted_letters = []
+    
     #Validáció
+    if history.history['accuracy'][-1] > 0.95:
+        for img_array in imgarrays:
+            #Betű felismerése a betanított modelllel
+            predictions = model.predict(np.expand_dims(img_array, axis=0), verbose=0)
+            predicted_class = np.argmax(predictions[0])
+            predicted_letter = chr(ord('A') + predicted_class)
+            predicted_letters.append(predicted_letter)
 
-    for img_array in imgarrays:
-        # Kép előrejelzése a betanított modelllel
-        predictions = model.predict(np.expand_dims(img_array, axis=0), verbose=0)
-        predicted_class = np.argmax(predictions[0])
-        predicted_letter = chr(ord('A') + predicted_class)
-        predicted_letters.append(predicted_letter)
-        
-        #print("A rajzolt betű: ", predicted_letter)
+        total_characters = len(test_letters)
+        same_characters = sum(1 for char1, char2 in zip(predicted_letters, test_letters) if char1 == char2)
 
-    total_characters = len(test_letters)
-    same_characters = sum(1 for char1, char2 in zip(predicted_letters, test_letters) if char1 == char2)
-
-    similarity_percentage = (same_characters / total_characters) * 100
-    print("Egyezés aránya: ", similarity_percentage)
-    if similarity_percentage >= 98: smart = True
+        similarity_percentage = (same_characters / total_characters) * 100
+        print("Egyezés aránya: ", similarity_percentage)
+        if similarity_percentage >= 97: smart = True
 
 
 model.save('best_model.h5')

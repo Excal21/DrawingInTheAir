@@ -2,22 +2,15 @@ import cv2 as cv
 import numpy as np
 import imutils
 import matplotlib.pyplot as plt
-from time import sleep
-import io
 from PIL import Image
-from pynput.keyboard import Key, Controller
-
-
+from pynput.keyboard import Controller
 from tensorflow import keras
 from PIL import Image
-import numpy as npqq
 
 # Betanított modell betöltése
-model = keras.models.load_model('model/A-Z99.h5', compile=False)
+model = keras.models.load_model('model/A-Z98.h5', compile=False)
 
 keyboard = Controller()
-
-
 
 x_coords = []
 y_coords = []
@@ -43,8 +36,10 @@ def calculate_contour_center(cnt):
 
 cap = cv.VideoCapture(camera)
 
+stop = False
+
 try:
-    for it in range(40):
+    while not stop:
         detectednum = 0
         x_coords = []
         y_coords = []
@@ -52,16 +47,10 @@ try:
         while True:
             ret, frame = cap.read() 
             frame = imutils.resize(frame, width=720, height=1280) 
-            
-            
-            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            gray = cv.GaussianBlur(gray, (17,17), 0)
-
-            HSV_im_1 = cv.cvtColor(frame , cv.COLOR_BGR2HSV)
+            HSV_img = cv.cvtColor(frame , cv.COLOR_BGR2HSV)
 
 
-            mask = cv.inRange(HSV_im_1,Orange_LB,Orange_UB)
-
+            mask = cv.inRange(HSV_img, Orange_LB,Orange_UB)
             mask = cv.medianBlur(mask, 9)
 
             cnts = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[-2]
@@ -70,14 +59,10 @@ try:
                 maxcnt = list(filter(lambda A: cv.contourArea(A) == max([cv.contourArea(cnt) for cnt in cnts]), cnts))[0]
                 if 2500 < cv.contourArea(maxcnt):
                     center = calculate_contour_center(maxcnt)
-                    # circle center
+                    x_coords.append(-center[0])
+                    y_coords.append(-center[1])
                     cv.circle(frame, center, 1, (0, 100, 100), 3)
-                    # circle outline
-                    if center != (None, None):
-                        x_coords.append(-center[0])
-                        y_coords.append(-center[1])
-                        cv.circle(frame, center, 40, (255, 0, 255), 3)
-                    
+                    cv.circle(frame, center, 40, (255, 0, 255), 3)
                     if detectednum > 30:
                         emptycnt = 0
                         just_resetted = False
@@ -88,6 +73,16 @@ try:
             else:
                 emptycnt += 1
 
+            if len(x_coords) > 70:
+                drawcords = zip(x_coords[-70:], y_coords[-70:])
+            else:
+                drawcords = zip(x_coords, y_coords)
+            
+            for x, y in drawcords:
+                cv.circle(frame, (-x,-y), 10, (255,255,255), 3)
+
+
+
             frame = cv.flip(frame, 1)
             mask = cv.flip(mask, 1)
             cv.imshow("Maszk", mask)
@@ -96,46 +91,41 @@ try:
                 emptycnt = 0
                 just_resetted = True
                 break
-            elif cv.waitKey(1) & 0xFF == ord('q'):
-                emptycnt = 0
-                just_resetted = True
+            elif cv.waitKey(1) & 0xFF == 27:
+                stop = True
                 break
 
+        if not stop:
+            x_coords = x_coords[-70:]
+            y_coords = y_coords[-70:]
 
+            plt.plot(x_coords, y_coords, linewidth=5)
+            ax = plt.gca()
+            ax.set_aspect('equal', adjustable='box')
+            plt.axis('off')
 
+            plt.savefig('current_drawing.png', bbox_inches='tight')
+            plt.clf()
+            #Kép betöltése és átalakítása a modell bemenetére
+            img = Image.open('current_drawing.png').convert('L')  #Szürkeárnyalatos konverzió
 
-        x_coords = x_coords[-80:]
-        y_coords = y_coords[-80:]
+            img = img.resize((28, 28))  #Méret átalakítása a modell bemenetének megfelelően
+            img_array = np.array(img) / 255.0  #Normalizálás
 
-        plt.plot(x_coords, y_coords, linewidth=5)
-        ax = plt.gca()
-        ax.set_aspect('equal', adjustable='box')
-        plt.axis('off')
+            #Betű felismerése a betanított modelllel
+            predictions = model.predict(np.expand_dims(img_array, axis=0))
+            predicted_class = np.argmax(predictions[0])
+            predicted_letter = chr(ord('A') + predicted_class)
+    
+    
+            #Eredmény megjelenítése a konzolon
+            print("A rajzolt betű: ", predicted_letter)
 
-        plt.savefig('current_drawing.png', bbox_inches='tight')
-        plt.clf()
-        # # Kép betöltése és átalakítása a modell bemenetére
-        img = Image.open('current_drawing.png').convert('L')  # Szürkeárnyalatos konverzió
-
-
-
-        img = img.resize((28, 28))  # Méret átalakítása a modell bemenetének megfelelően
-        img_array = np.array(img) / 255.0  # Normalizálás
-
-        # Kép előrejelzése a betanított modelllel
-        predictions = model.predict(np.expand_dims(img_array, axis=0))
-        predicted_class = np.argmax(predictions[0])
-        predicted_letter = chr(ord('A') + predicted_class)
-   
-   
-        # Eredmény megjelenítése a képernyőn
-        print("A rajzolt betű: ", predicted_letter)
-
-        probabilities = predictions[0]
-        keyboard.press(predicted_letter)
-        print("Valószínűségek:")
-        for i, prob in enumerate(probabilities):
-            print(f"{chr(ord('A') + i)}: {prob}")
+            probabilities = predictions[0]
+            keyboard.press(predicted_letter)
+            print("Valószínűségek:")
+            for i, prob in enumerate(probabilities):
+                print(f"{chr(ord('A') + i)}: {prob}")
 
 
     cv.destroyAllWindows()

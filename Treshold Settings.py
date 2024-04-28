@@ -11,9 +11,10 @@ with open('hsv.conf', 'r') as file:
 
 cap = cv2.VideoCapture(camera)
 
-cv2.namedWindow('image')
+cv2.namedWindow('image', cv2.WINDOW_NORMAL)
 
-cv2.createTrackbar('HMin','image',0,179,nothing) # Hue is from 0-179 for Opencv
+cv2.resizeWindow('image', 1280, 1000)
+cv2.createTrackbar('HMin','image',0,179,nothing)
 cv2.createTrackbar('SMin','image',0,255,nothing)
 cv2.createTrackbar('VMin','image',0,255,nothing)
 cv2.createTrackbar('HMax','image',0,179,nothing)
