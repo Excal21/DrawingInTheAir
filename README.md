@@ -16,3 +16,9 @@ A tárgyat a számítógép szín alapján érzékeli, majd egy konvolúciós ne
 - Matplotlib - https://matplotlib.org/
 - Imutils - https://github.com/PyImageSearch/imutils
 - NumPy - https://numpy.org/
+
+Ezek a függőségek telepíthetők a következő paranccsal:
+```console
+pip install opencv-python tensorflow pynput pillow imutils numpy matplotlib
+```
+><span style="color: rgb(218, 54, 51); font-weight: bold;"> FONTOS </span>: A Matplotlib és a TensorFlow használata megköveteli a legfrissebb Visual C++ Redistributable meglétét. Ez letölhető a következő linkről: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170

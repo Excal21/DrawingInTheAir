@@ -1,10 +1,8 @@
 import os
 import numpy as np
 from tensorflow import keras
-from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping
 from PIL import Image
-import random
 
 # Adathalmaz beállításai
 img_height = 28
